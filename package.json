@@ -24,6 +24,8 @@
     },
     "scripts": {
         "coverage": "jest --coverage --collectCoverageFrom='src/**/*.{ts,jxs}'",
+        "lint": "eslint ./src",
+        "start": "ts-node -T ./src/test.ts",
         "test": "jest"
     },
     "dependencies": {},
@@ -31,6 +33,13 @@
         "@jest/globals": "^29.6.3",
         "@types/jest": "^29.5.3",
         "@types/node": "^20.5.1",
+        "@typescript-eslint/eslint-plugin": "^6.4.1",
+        "@typescript-eslint/parser": "^6.4.1",
+        "eslint": "^8.47.0",
+        "eslint-config-airbnb-base": "^15.0.0",
+        "eslint-config-airbnb-typescript": "^17.1.0",
+        "eslint-plugin-import": "^2.28.1",
+        "eslint-plugin-jest": "^27.2.3",
         "jest": "^29.6.3",
         "ts-jest": "^29.1.1",
         "typescript": "^5.1.6"
