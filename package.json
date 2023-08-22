@@ -14,7 +14,10 @@
             "url": "https://github.com/timelostprototype"
         }
     ],
-    "engines": {},
+    "engineStrict" : true,
+    "engines": {
+        "node": ">= 16.0.0 <= 16.20.2"
+    },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/swiftmatt/wow-chat-client.git"
