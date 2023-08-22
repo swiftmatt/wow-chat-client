@@ -57,7 +57,7 @@ export class RealmServer extends EventEmitter {
             bytes.copy(data);
             const ap = new AuthPacket(opcode, data, false);
 
-            console.debug("\t\u001b[33m⟹\u001b[0m", ap.toString());
+            // console.debug("\t\u001b[33m⟹\u001b[0m", ap.toString());
 
             this.emit("packet:receive", ap);
             if (ap.opcodeName) {

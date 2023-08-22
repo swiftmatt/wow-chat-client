@@ -115,7 +115,7 @@ export class WorldServer extends EventEmitter {
                 const skipFilter = true;
 
                 if (filterOpcodes.indexOf(opcode) === -1 || skipFilter) {
-                    console.debug("\t\u001b[32m⟹\u001b[0m", gp.toString());
+                    // console.debug("\t\u001b[32m⟹\u001b[0m", gp.toString());
                 }
 
                 this.emit("packet:receive", gp);

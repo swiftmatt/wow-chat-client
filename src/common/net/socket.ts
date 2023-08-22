@@ -85,7 +85,7 @@ export class Socket {
             const skipFilter = false;
 
             if (filterOpcodes.indexOf(packet.opcode) === -1 || skipFilter) {
-                console.debug("\t\u001b[36m⟸\u001b[0m", packet.toString());
+                // console.debug("\t\u001b[36m⟸\u001b[0m", packet.toString());
             }
 
             this.socket?.write(packet.buffer);
