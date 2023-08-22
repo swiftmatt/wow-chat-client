@@ -7,132 +7,134 @@ import { AuthPacket } from "./packet";
 import { RealmServer } from "../realmserver";
 import { LogonChallengePacket, SRP } from "../../common/crypto/srp";
 
+
 export class AuthHandler {
-  constructor(private realmServer: RealmServer) {}
-
-  private prepareAuthRequestPacket() {
-    const {
-      build,
-      majorVersion,
-      minorVersion,
-      patchVersion,
-      game,
-      os,
-      locale,
-      platform,
-      timezone,
-    } = this.realmServer.clientConfig;
-
-    const account = this.realmServer.config.account.toUpperCase();
-
-    const ap = new AuthPacket(
-      AuthOpcode.LOGON_CHALLENGE,
-      4 + 29 + 1 + account.length
-    );
-    ap.writeUInt8(0x08);
-    ap.writeUInt16LE(30 + account.length);
-
-    const rawGameBytes = game.split("").map((x) => x.charCodeAt(0));
-    ap.writeRawString(game.split("").reverse().join("")); // game string
-    ap.writeUInt8(majorVersion); // v1 (major)
-    ap.writeUInt8(minorVersion); // v2 (minor)
-    ap.writeUInt8(patchVersion); // v3 (patch)
-    ap.writeUInt16LE(build); // build
-    ap.writeRawString(platform.split("").reverse().join("")); // platform
-    ap.writeRawString(os.split("").reverse().join("")); // os
-    ap.writeRawString(locale.split("").reverse().join("")); // locale
-    ap.writeUInt8(0); // timezone
-    ap.writeUInt8(0); // timezone
-    ap.writeUInt8(0); // timezone
-    ap.writeUInt8(127); // ip
-    ap.writeUInt8(0); // ip
-    ap.writeUInt8(0); // ip
-    ap.writeUInt8(1); // ip
-    ap.writeUInt8(account.length); // account length
-    ap.writeBytes(Buffer.from(account)); // account
-
-    return ap;
-  }
-
-  private decodeLogonChallenge(ap: AuthPacket): LogonChallengePacket {
-    const packet: LogonChallengePacket = {
-      status: -1,
-      B: BigInt(-1),
-      g: BigInt(-1),
-      N: BigInt(-1),
-      salt: BigInt(-1),
-    };
-    ap.readUInt8();
-    packet.status = ap.readUInt8();
-    if (packet.status === ChallengeOpcode.SUCCESS) {
-      packet.B = ap.readBigInt(32, false);
-      const glen = ap.readUInt8(); // g-length
-      packet.g = ap.readBigInt(glen); // g
-
-      const Nlen = ap.readUInt8(); // n-length
-      packet.N = ap.readBigInt(Nlen); // N
-
-      packet.salt = ap.readBigInt(32, false); // salt
-
-      ap.readBytes(16); // unknown
-      ap.readUInt8(); // security flags
+    constructor(private realmServer: RealmServer) {
     }
 
-    return packet;
-  }
+    private prepareAuthRequestPacket() {
+        const {
+            build,
+            majorVersion,
+            minorVersion,
+            patchVersion,
+            game,
+            os,
+            locale,
+            platform,
+            timezone,
+        } = this.realmServer.clientConfig;
 
-  async authenticate(): Promise<Uint8Array> {
-    const account = this.realmServer.config.account.toUpperCase();
-    const password = this.realmServer.config.password.toUpperCase();
+        const account = this.realmServer.config.account.toUpperCase();
 
-    return new Promise((resolve, reject) => {
-      this.realmServer.once(
-        "packet:receive:LOGON_CHALLENGE",
-        async (ap: AuthPacket) => {
-          const packet = this.decodeLogonChallenge(ap);
+        const ap = new AuthPacket(
+            AuthOpcode.LOGON_CHALLENGE,
+            4 + 29 + 1 + account.length
+        );
+        ap.writeUInt8(0x08);
+        ap.writeUInt16LE(30 + account.length);
 
-          switch (packet.status) {
-            case ChallengeOpcode.SUCCESS:
-              const srp = new SRP(account, password);
-              const srpResult = await srp.calculate(packet);
-              const lpp = new AuthPacket(
-                AuthOpcode.LOGON_PROOF,
-                1 + 32 + 20 + 20 + 2
-              );
-              lpp.writeBytes(srpResult.A);
-              lpp.writeBytes(srpResult.M1);
-              lpp.writeBytes(Buffer.from(new Array(20))); // CRC hash
-              lpp.writeUInt8(0x00); // number of keys
-              lpp.writeUInt8(0x00); // security flags
+        const rawGameBytes = game.split("").map((x) => x.charCodeAt(0));
+        ap.writeRawString(game.split("").reverse().join("")); // game string
+        ap.writeUInt8(majorVersion); // v1 (major)
+        ap.writeUInt8(minorVersion); // v2 (minor)
+        ap.writeUInt8(patchVersion); // v3 (patch)
+        ap.writeUInt16LE(build); // build
+        ap.writeRawString(platform.split("").reverse().join("")); // platform
+        ap.writeRawString(os.split("").reverse().join("")); // os
+        ap.writeRawString(locale.split("").reverse().join("")); // locale
+        ap.writeUInt8(0); // timezone
+        ap.writeUInt8(0); // timezone
+        ap.writeUInt8(0); // timezone
+        ap.writeUInt8(127); // ip
+        ap.writeUInt8(0); // ip
+        ap.writeUInt8(0); // ip
+        ap.writeUInt8(1); // ip
+        ap.writeUInt8(account.length); // account length
+        ap.writeBytes(Buffer.from(account)); // account
 
-              this.realmServer.once(
-                "packet:receive:LOGON_PROOF",
-                async (ap: AuthPacket) => {
-                  ap.readUInt8();
-                  const M2_raw = ap.readBigInt(20, false);
-                  const valid = srpResult.M2 === M2_raw;
+        return ap;
+    }
 
-                  if (valid) {
-                    resolve(srpResult.key);
-                  } else {
-                    reject();
-                  }
-                }
-              );
+    private decodeLogonChallenge(ap: AuthPacket): LogonChallengePacket {
+        const packet: LogonChallengePacket = {
+            status: -1,
+            B: BigInt(-1),
+            g: BigInt(-1),
+            N: BigInt(-1),
+            salt: BigInt(-1),
+        };
+        ap.readUInt8();
+        packet.status = ap.readUInt8();
+        if (packet.status === ChallengeOpcode.SUCCESS) {
+            packet.B = ap.readBigInt(32, false);
+            const glen = ap.readUInt8(); // g-length
+            packet.g = ap.readBigInt(glen); // g
 
-              this.realmServer.send(lpp);
+            const Nlen = ap.readUInt8(); // n-length
+            packet.N = ap.readBigInt(Nlen); // N
 
-              break;
-            case ChallengeOpcode.ACCOUNT_INVALID:
-              reject("account invalid");
-            case ChallengeOpcode.BUILD_INVALID:
-              reject("build invalid");
-            default:
-              reject(packet.status);
-          }
+            packet.salt = ap.readBigInt(32, false); // salt
+
+            ap.readBytes(16); // unknown
+            ap.readUInt8(); // security flags
         }
-      );
-      this.realmServer.send(this.prepareAuthRequestPacket());
-    });
-  }
+
+        return packet;
+    }
+
+    async authenticate(): Promise<Uint8Array> {
+        const account = this.realmServer.config.account.toUpperCase();
+        const password = this.realmServer.config.password.toUpperCase();
+
+        return new Promise((resolve, reject) => {
+            this.realmServer.once(
+                "packet:receive:LOGON_CHALLENGE",
+                async (ap: AuthPacket) => {
+                    const packet = this.decodeLogonChallenge(ap);
+
+                    switch (packet.status) {
+                        case ChallengeOpcode.SUCCESS:
+                            const srp = new SRP(account, password);
+                            const srpResult = await srp.calculate(packet);
+                            const lpp = new AuthPacket(
+                                AuthOpcode.LOGON_PROOF,
+                                1 + 32 + 20 + 20 + 2
+                            );
+                            lpp.writeBytes(srpResult.A);
+                            lpp.writeBytes(srpResult.M1);
+                            lpp.writeBytes(Buffer.from(new Array(20))); // CRC hash
+                            lpp.writeUInt8(0x00); // number of keys
+                            lpp.writeUInt8(0x00); // security flags
+
+                            this.realmServer.once(
+                                "packet:receive:LOGON_PROOF",
+                                async (ap: AuthPacket) => {
+                                    ap.readUInt8();
+                                    const M2_raw = ap.readBigInt(20, false);
+                                    const valid = srpResult.M2 === M2_raw;
+
+                                    if (valid) {
+                                        resolve(srpResult.key);
+                                    } else {
+                                        reject();
+                                    }
+                                }
+                            );
+
+                            this.realmServer.send(lpp);
+
+                            break;
+                        case ChallengeOpcode.ACCOUNT_INVALID:
+                            reject("account invalid");
+                        case ChallengeOpcode.BUILD_INVALID:
+                            reject("build invalid");
+                        default:
+                            reject(packet.status);
+                    }
+                }
+            );
+            this.realmServer.send(this.prepareAuthRequestPacket());
+        });
+    }
 }

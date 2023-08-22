@@ -1,18 +1,18 @@
 {
-  "name": "@timelostprototype/wow-client",
-  "version": "0.0.5",
-  "repository": "github:timelostprototype/wow-client",
-  "exports": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "scripts": {
-    "test": "jest"
-  },
-  "dependencies": {},
-  "devDependencies": {
-    "@types/jest": "^27.4.1",
-    "dotenv-cli": "^5.1.0",
-    "jest": "^27.0.3",
-    "ts-jest": "^27.1.4",
-    "typescript": "^4.6.4"
-  }
+    "name": "@timelostprototype/wow-client",
+    "version": "0.0.5",
+    "repository": "github:timelostprototype/wow-client",
+    "exports": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "test": "jest"
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "@types/jest": "^27.4.1",
+        "dotenv-cli": "^5.1.0",
+        "jest": "^27.0.3",
+        "ts-jest": "^27.1.4",
+        "typescript": "^4.6.4"
+    }
 }
